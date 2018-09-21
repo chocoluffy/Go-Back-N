@@ -1,1 +1,6 @@
-# CS5450-A1
+# CS5450 Lab 1
+
+Shunzhe Yu & Xiangru Qian
+
+------
+
