@@ -30,17 +30,23 @@ int main(int argc, char *argv[]){
 		exit(-1);
 	}
 
+	printf("before gbn_socket()");
+
 	/*----- Opening the socket -----*/
 	if ((sockfd = gbn_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
 		perror("gbn_socket");
 		exit(-1);
 	}
 
+	printf("after gbn_socket()");
+
 	/*--- Setting the server's parameters -----*/
 	memset(&server, 0, sizeof(struct sockaddr_in));
 	server.sin_family = AF_INET;
 	server.sin_addr   = *(struct in_addr *)he->h_addr;
 	server.sin_port   = htons(atoi(argv[2]));
+
+	printf("before gbn_connect()");
 
 	/*----- Connecting to the server -----*/
 	if (gbn_connect(sockfd, (struct sockaddr *)&server, socklen) == -1){

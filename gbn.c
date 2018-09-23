@@ -41,16 +41,13 @@ int gbn_close(int sockfd){
 int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 
 	/* TODO: Your code here. */
-	char* buffer = malloc(10*sizeof(char));
-	int len = 10;
-	int flags = 0;
-	int retval = sendto(sockfd, buffer, len, flags, server, sizeof(server));
-	while(1) {
-		int byte_count = recvfrom(sockfd, buffer, sizeof(buffer), 0, server, socklen);
-		if (byte_count != -1) {
-			printf("recv: %d", byte_count);
-		}
-	}
+	gbnhdr syn;
+	syn.type = SYN;
+	int retval = sendto(sockfd, &syn, sizeof(syn), 0, server, socklen);
+	printf("successfully send SYN to server side.");
+
+	// TODO: check if receive SYNACK from server side.
+
 	return(0);
 }
 
@@ -80,12 +77,23 @@ int gbn_socket(int domain, int type, int protocol){
 }
 
 int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
-
+	gbnhdr buf;
 	/* TODO: Your code here. */
-	char* buffer = malloc(10*sizeof(char));
-	while(1){
-        int byte_count = recvfrom(sockfd, buffer, sizeof(buffer), 0, client, socklen);
-	// return(-1);
+	while(1) {
+		// [1] call recvfrom. to get SYNC.
+		int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, client, socklen);
+		if (buf.type == SYN) {
+			// [2] check SYNC integrity.
+			// [3] init SYNACK.
+			gbnhdr synack;
+			synack.type = SYNACK;
+			// [4] call sendto, reply with SYNACK.
+			sendto(sockfd, &synack, sizeof(synack), 0, client, socklen);
+			break;
+		}
+	}
+	printf("server successfully receive SYN and reply with SYNACK. Move to state.");
+	return(sockfd);
 }
 
 ssize_t maybe_recvfrom(int  s, char *buf, size_t len, int flags, struct sockaddr *from, socklen_t *fromlen){
