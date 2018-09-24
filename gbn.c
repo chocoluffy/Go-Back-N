@@ -35,7 +35,7 @@ int gbn_close(int sockfd){
 
 	/* TODO: Your code here. */
 	return close(sockfd);
-	// return(-1);
+	/*  return(-1); */
 }
 
 int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
@@ -73,7 +73,7 @@ int gbn_socket(int domain, int type, int protocol){
 	
 	/* TODO: Your code here. */
 	return socket(domain,type,protocol);
-	// return(-1);
+	/* return(-1); */
 }
 
 int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
