@@ -92,7 +92,7 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 			break;
 		}
 	}
-	printf("server successfully receive SYN and reply with SYNACK. Move to state.");
+	printf("server successfully receive SYN and reply with SYNACK. Move to state.\n");
 	return(sockfd);
 }
 
