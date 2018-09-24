@@ -50,6 +50,9 @@ typedef struct {
 typedef struct state_t{
 
 	/* TODO: Your state information could be encoded here. */
+    struct sockaddr *server_addr;
+    struct sockaddr *client_addr;
+
 
 } state_t;
 
