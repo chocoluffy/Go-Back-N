@@ -1,5 +1,7 @@
 #include "gbn.h"
 
+address addr_book;
+
 uint16_t checksum(uint16_t *buf, int nwords)
 {
 	uint32_t sum;
@@ -49,6 +51,7 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 	gbnhdr syn;
 	syn.type = SYN;
 	int retval = (int) sendto(sockfd, &syn, sizeof(syn), 0, server, socklen);
+	addr_book.server_addr = (struct sockaddr *) server;
 	printf("successfully send SYN to server side.\n");
 
 	/* TODO: check if receive SYNACK from server side. */
@@ -94,7 +97,8 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 			synack.type = SYNACK;
 			/* [4] call sendto, reply with SYNACK.*/
 			sendto(sockfd, &synack, sizeof(synack), 0, client, socklen);
-			break;
+            addr_book.client_addr = (struct sockaddr *) client;
+            break;
 		}
 	}
 	printf("server successfully receive SYN and reply with SYNACK. Move to state.\n");

@@ -53,6 +53,11 @@ typedef struct state_t{
 
 } state_t;
 
+typedef struct address{
+    struct sockaddr *server_addr;
+    struct sockaddr *client_addr;
+} address;
+
 enum {
 	CLOSED=0,
 	SYN_SENT,
