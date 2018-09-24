@@ -20,6 +20,11 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 	 *       up into multiple packets - you don't have to worry
 	 *       about getting more than N * DATALEN.
 	 */
+	int segment_num = len / DATALEN + 1;
+	for (int i = 0; i < segment_num; i++) {
+		(void *) segment_ptr = buf + i * DATALEN;
+		int retval = (int) sendto(sockfd, segment_ptr, DATALEN, 0, server, socklen);
+	}
 
 	return(-1);
 }
