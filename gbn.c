@@ -43,7 +43,7 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 	/* TODO: Your code here. */
 	gbnhdr syn;
 	syn.type = SYN;
-	int retval = sendto(sockfd, &syn, sizeof(syn), 0, server, socklen);
+	int retval = (int) sendto(sockfd, &syn, sizeof(syn), 0, server, socklen);
 	printf("successfully send SYN to server side.\n");
 
 	// TODO: check if receive SYNACK from server side.
@@ -96,31 +96,3 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 	return(sockfd);
 }
 
-ssize_t maybe_recvfrom(int  s, char *buf, size_t len, int flags, struct sockaddr *from, socklen_t *fromlen){
-
-	/*----- Packet not lost -----*/
-	if (rand() > LOSS_PROB*RAND_MAX){
-
-
-		/*----- Receiving the packet -----*/
-		int retval = recvfrom(s, buf, len, flags, from, fromlen);
-
-		/*----- Packet corrupted -----*/
-		if (rand() < CORR_PROB*RAND_MAX){
-			/*----- Selecting a random byte inside the packet -----*/
-			int index = (int)((len-1)*rand()/(RAND_MAX + 1.0));
-
-			/*----- Inverting a bit -----*/
-			char c = buf[index];
-			if (c & 0x01)
-				c &= 0xFE;
-			else
-				c |= 0x01;
-			buf[index] = c;
-		}
-
-		return retval;
-	}
-	/*----- Packet lost -----*/
-	return(len);  /* Simulate a success */
-}

@@ -34,6 +34,7 @@ extern int errno;
 #define FIN      4        /* Ends a connection                           */
 #define FINACK   5        /* Acknowledgement of the FIN packet           */
 #define RST      6        /* Reset packet used to reject new connections */
+#define h_addr h_addr_list[0]
 
 /*----- Go-Back-n packet format -----*/
 typedef struct {
