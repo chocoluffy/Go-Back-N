@@ -44,7 +44,7 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 	gbnhdr syn;
 	syn.type = SYN;
 	int retval = sendto(sockfd, &syn, sizeof(syn), 0, server, socklen);
-	printf("successfully send SYN to server side.");
+	printf("successfully send SYN to server side.\n");
 
 	// TODO: check if receive SYNACK from server side.
 

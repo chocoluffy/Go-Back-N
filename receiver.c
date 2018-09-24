@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
-	printf("before gbn_socket()");
+	printf("before gbn_socket()\n");
 
 	/*----- Opening the socket -----*/
 	if ((sockfd = gbn_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 	server.sin_port        = htons(atoi(argv[1]));
 
-	printf("before gbn_bind()");
+	printf("before gbn_bind()\n");
 
 	/*----- Binding to the designated port -----*/
 	if (gbn_bind(sockfd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) == -1){
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 	
-	printf("before gbn_listen()");
+	printf("before gbn_listen()\n");
 	
 	/*----- Listening to new connections -----*/
 	if (gbn_listen(sockfd, 1) == -1){
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
-	printf("before gbn_accept()");
+	printf("before gbn_accept()\n");
 
 	/*----- Waiting for the client to connect -----*/
 	socklen = sizeof(struct sockaddr_in);
