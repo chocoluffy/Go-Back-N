@@ -55,7 +55,7 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 	gbnhdr syn;
 	syn.type = SYN;
 	int retval = (int) sendto(sockfd, &syn, sizeof(syn), 0, server, socklen);
-	printf("gbn_connect(), server address at %s.\n", addr_book.client_addr->sa_data);
+	// printf("gbn_connect(), server address at %s.\n", addr_book.client_addr->sa_data);
 	addr_book.server_addr = (struct sockaddr *) server;
 	printf("successfully send SYN to server side.\n");
 
