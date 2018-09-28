@@ -55,7 +55,10 @@ typedef struct state_t{
 
 typedef struct address{
     struct sockaddr *server_addr;
+	socklen_t serveraddrlen;
+
     struct sockaddr *client_addr;
+	socklen_t clientaddrlen;
 } address;
 
 enum {
