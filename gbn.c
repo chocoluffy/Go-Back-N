@@ -1,8 +1,6 @@
 #include "gbn.h"
 
-address addr_book;
-state_t server_state;
-state_t client_state;
+state_t state;
 
 uint16_t checksum(uint16_t *buf, int nwords)
 {
@@ -26,12 +24,12 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 	 */
 	// int segment_num = len / DATALEN + 1;
 	// void* segment_ptr;
-	int retval = (int) sendto(sockfd, buf, len, 0, addr_book.server_addr, addr_book.serveraddrlen);
+	int retval = (int) sendto(sockfd, buf, len, 0, state.addr, state.addrlen);
 	if (retval < 0) {
 		perror("sendto in gbn_send()");
 		exit(-1);
 	}
-	printf("expect to send %d, actually send %d", len, retval);
+	printf("expect to send %d, actually send %d\n", len, retval);
 	// for (int i = 0; i < segment_num; i++) {
 	// 	segment_ptr = buf + i * DATALEN;
 	// 	int retval = (int) sendto(sockfd, segment_ptr, DATALEN, 0, addr_book.server_addr, addr_book.serveraddrlen);
@@ -78,8 +76,8 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 	syn.type = SYN;
 	int retval = (int) sendto(sockfd, &syn, sizeof(syn), 0, server, socklen);
 	// printf("gbn_connect(), server address at %s.\n", addr_book.client_addr->sa_data);
-	addr_book.server_addr = (struct sockaddr *) server;
-	addr_book.serveraddrlen = socklen;
+	state.addr = (struct sockaddr *) server;
+	state.addrlen = socklen;
 	printf("successfully send SYN to server side.\n");
 
 	/* TODO: check if receive SYNACK from server side. */
@@ -125,8 +123,8 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 			synack.type = SYNACK;
 			/* [4] call sendto, reply with SYNACK.*/
 			sendto(sockfd, &synack, sizeof(synack), 0, client, socklen);
-            addr_book.client_addr = (struct sockaddr *) client;
-			addr_book.clientaddrlen = socklen;
+            state.addr = (struct sockaddr *) client;
+			state.addrlen = socklen;
             break;
 		}
 	}
@@ -134,3 +132,31 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 	return(sockfd);
 }
 
+ssize_t maybe_recvfrom(int  s, char *buf, size_t len, int flags, struct sockaddr *from, socklen_t *fromlen){
+
+	/*----- Packet not lost -----*/
+	if (rand() > LOSS_PROB*RAND_MAX){
+
+
+		/*----- Receiving the packet -----*/
+		int retval = recvfrom(s, buf, len, flags, from, fromlen);
+
+		/*----- Packet corrupted -----*/
+		if (rand() < CORR_PROB*RAND_MAX){
+			/*----- Selecting a random byte inside the packet -----*/
+			int index = (int)((len-1)*rand()/(RAND_MAX + 1.0));
+
+			/*----- Inverting a bit -----*/
+			char c = buf[index];
+			if (c & 0x01)
+				c &= 0xFE;
+			else
+				c |= 0x01;
+			buf[index] = c;
+		}
+
+		return retval;
+	}
+	/*----- Packet lost -----*/
+	return(len);  /* Simulate a success */
+}

@@ -47,31 +47,23 @@ typedef struct {
 
 /* ? during established. if we need to add one more field: */
 
-/**
- * Use state_t to replace address.
- * Define server state and client state.
- */
+
 typedef struct state_t{
 
 	/* TODO: Your state information could be encoded here. */
+	/* shared attributes.*/
+	
+	int identity; /* 0: client; 1: server */
+
 	int seq_num;
 	int ack_num;
 	int data_len;
 	int mode;
-	struct sockaddr *server_addr;
-	socklen_t serveraddrlen;
 
-    struct sockaddr *client_addr;
-	socklen_t clientaddrlen;
+	struct sockaddr *addr;
+	socklen_t addrlen;
+
 } state_t;
-
-typedef struct address{
-    struct sockaddr *server_addr;
-	socklen_t serveraddrlen;
-
-    struct sockaddr *client_addr;
-	socklen_t clientaddrlen;
-} address;
 
 enum {
 	CLOSED=0,

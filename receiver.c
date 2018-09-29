@@ -71,7 +71,9 @@ int main(int argc, char *argv[])
 		}
 		else if (numRead == 0)
 			break;
+		printf("read from buffer: %d.. @%s@ \n", numRead, buf);
 		fwrite(buf, 1, numRead, outputFile);
+		fclose(outputFile);
 	}
 
 	/*----- Closing the socket -----*/

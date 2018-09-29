@@ -60,6 +60,7 @@ int main(int argc, char *argv[]){
 			perror("gbn_send");
 			exit(-1);
 		}
+		printf("already sended %d. with @%s@ \n", numRead, buf);
 	}
 
 	/*----- Closing the socket -----*/
