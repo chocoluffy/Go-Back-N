@@ -1,5 +1,7 @@
 #include "gbn.h"
 
+state_t s;
+
 uint16_t checksum(uint16_t *buf, int nwords)
 {
 	uint32_t sum;
@@ -108,6 +110,7 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 			struct sockaddr_in from_addr;
 			int from_len = sizeof(from_addr);
 			int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, &from_addr, from_len);
+			printf("## receive something: %d. \n", retval);
 			if (buf.type == SYNACK) {
 				printf("successfully received SYNACK. \n");
 				return(0);
