@@ -4,6 +4,29 @@ Shunzhe Yu & Xiangru Qian
 
 ------
 
+[9.29]
+
+sendto() and recvfrom()
+
+ssize_t
+     sendto(int socket, const void *buffer, size_t length, int flags, const struct sockaddr *dest_addr, socklen_t dest_len);
+
+the last argument is the true value `socklen_t dest_len`, while for recvfrom():
+
+ssize_t
+     recvfrom(int socket, void *restrict buffer, size_t length, int flags, struct sockaddr *restrict address, socklen_t *restrict address_len);
+
+the last argument is a pointer `socklen_t *restrict address_len`.
+
+we use :
+```
+if (retval < 0) {
+    printf("error num: %s. \n", strerror(errno));
+    exit(-1);
+}
+```
+---
+
 - how sequence number works. and how it relate to the prev sequence num (stored in the global state).
 - how SIGALRM and timer works.
 - how checksum works.

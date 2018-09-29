@@ -111,8 +111,10 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 			struct sockaddr* from_addr;
 			socklen_t from_len = sizeof(from_addr);
 			int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
-			printf("## after receive packet from server. print server addr len %d. \n", from_addr->sa_len);
-			printf("## receive something: %d. \n", retval);
+			if (retval < 0) {
+				perror('error in recvfrom in gbn_connect');
+				exit(-1);
+			}
 			if (buf.type == SYNACK) {
 				printf("successfully received SYNACK. \n");
 				return(0);
@@ -148,12 +150,10 @@ int gbn_socket(int domain, int type, int protocol){
 
 int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 	gbnhdr buf;
-	/* TODO: Your code here. */
-	// while(1) {
+
+	while(1) {
 		/* [1] call recvfrom. to get SYNC.*/
-		printf("##before %d\n", client->sa_len);
 		int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, client, socklen);
-		printf("##after %d\n", client->sa_len);
 
 		if (buf.type == SYN) {
 			/* [2] check SYNC integrity.*/
@@ -163,25 +163,17 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 			synack.seqnum = 1;
 			synack.checksum = 0;
 			/* [4] call sendto, reply with SYNACK.*/
-			printf("##before server send SYNACK back to client. client addr len %d\n", client->sa_len);
 			int retval = sendto(sockfd, &synack, sizeof(synack), 0, client, *socklen);
-			printf("## server send SYNACK, actual send: %d. \n", retval);
 			if (retval < 0) {
-				printf("error num: %s. \n", strerror(errno));
+				printf("error in sendto in gbn_accept");
 				exit(-1);
 			}
             s.addr = client;
 			s.addrlen = socklen;
-            // break;
 			printf("server successfully receive SYN and reply with SYNACK. Move to state.\n");
-
-			// while(1) {
-			// 	sendto(sockfd, &synack, sizeof(synack), 0, client, socklen);
-			// 	printf("server sends to client synack.. \n");
-			// }
+            break;
 		}
-	// 
-
+	}
 	return(sockfd);
 }
 
