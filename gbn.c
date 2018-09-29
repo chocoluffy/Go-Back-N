@@ -66,27 +66,44 @@ int gbn_close(int sockfd){
 	/*  return(-1); */
 }
 
+void alarm_handler(int sig) {
+	signal(SIGALRM, SIG_IGN); /* ignore same signal interrupting. */
+
+	if (s.segment.type == SYN) {
+		printf("re-send SYN to server.\n");
+		if (sendto(s.sockfd, &s.segment, sizeof(s.segment), 0, s.addr, s.addrlen) < 0) {
+			perror("error in sendto() at gbn_connect()");
+			exit(-1);
+		}
+	}
+
+	signal(SIGALRM, alarm_handler); /* re-register handler. */
+}
+
 int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
+	
+	/**
+	 * init state.
+	 * 
+	 * seq_num = random()
+	 * ack_num = -1
+	 * data_len = 0
+	 * checksum = -1
+	 * mode = 0
+	 * 
+	 * send SYN to the server.
+	 * receive SYNACK.
+	 */
+	s.sockfd = sockfd;
+	s.seq_num = rand() % 100;
+	s.ack_num = -1;
+	s.data_len = 0;
+	s.mode = 0;
+
+	signal(SIGALRM, alarm_handler);
 
 	/* only break when connection is established (SYNACK received). */
 	while (1) {
-		/**
-		 * init state.
-		 * 
-		 * seq_num = random()
-		 * ack_num = -1
-		 * data_len = 0
-		 * checksum = -1
-		 * mode = 0
-		 * 
-		 * send SYN to the server.
-		 * receive SYNACK.
-		 */
-		s.seq_num = rand() % 100;
-		s.ack_num = -1;
-		s.data_len = 0;
-		s.mode = 0;
-
 		/* construct current syn packet. */
 		gbnhdr syn_segment;
 		syn_segment.type = SYN;
@@ -94,28 +111,39 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 		syn_segment.acknum = s.ack_num;
 		
 		int retval = (int) sendto(sockfd, &syn_segment, sizeof(syn_segment), 0, server, socklen);
+		if (retval < 0) {
+			perror("error in sendto() at gbn_connect()");
+			exit(-1);
+		}
+		s.segment = syn_segment; /* update state(prev state) */
+		alarm(TIMEOUT); /* start timer. */
+
 		s.addr = (struct sockaddr *) server;
 		s.addrlen = socklen;
 		printf("successfully send SYN packet to server side.\n");
 
-		/* update state(prev state) */
-		s.segment = syn_segment;
-		
 		/* wait for SYNACK. 
 		* - timeout: repeat connect.
 		* - successfully receive SYNACK, move to next state.
 		*/
-
+		
+		int i = 0;
 		while (1) {
+
+			if (i == 0)
+				sleep(2);
+			i++;
+
 			gbnhdr buf;
 			struct sockaddr* from_addr;
 			socklen_t from_len = sizeof(from_addr);
 			int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
 			if (retval < 0) {
-				perror('error in recvfrom in gbn_connect');
+				perror('error in recvfrom() at gbn_connect()');
 				exit(-1);
 			}
 			if (buf.type == SYNACK) {
+				alarm(0); /* clear all existing timers. */
 				printf("successfully received SYNACK. \n");
 				return(0);
 			} 
@@ -165,7 +193,7 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 			/* [4] call sendto, reply with SYNACK.*/
 			int retval = sendto(sockfd, &synack, sizeof(synack), 0, client, *socklen);
 			if (retval < 0) {
-				printf("error in sendto in gbn_accept");
+				perror("error in sendto() at gbn_accept().");
 				exit(-1);
 			}
             s.addr = client;

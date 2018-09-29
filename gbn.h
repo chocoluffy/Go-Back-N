@@ -53,6 +53,7 @@ typedef struct state_t{
 	/* TODO: Your state information could be encoded here. */
 	/* shared attributes.*/
 	
+	int sockfd;
 	int seq_num;
 	int ack_num;
 	int data_len;

@@ -6,7 +6,7 @@ Shunzhe Yu & Xiangru Qian
 
 [9.29]
 
-sendto() and recvfrom()
+1. sendto() and recvfrom()
 
 ssize_t
      sendto(int socket, const void *buffer, size_t length, int flags, const struct sockaddr *dest_addr, socklen_t dest_len);
@@ -25,6 +25,12 @@ if (retval < 0) {
     exit(-1);
 }
 ```
+
+2. extern state_t s;
+
+declare `state_t s;` in the gbn.c
+
+
 ---
 
 - how sequence number works. and how it relate to the prev sequence num (stored in the global state).
