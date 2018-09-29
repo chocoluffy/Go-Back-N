@@ -47,10 +47,22 @@ typedef struct {
 
 /* ? during established. if we need to add one more field: */
 
+/**
+ * Use state_t to replace address.
+ * Define server state and client state.
+ */
 typedef struct state_t{
 
 	/* TODO: Your state information could be encoded here. */
+	int seq_num;
+	int ack_num;
+	int data_len;
+	int mode;
+	struct sockaddr *server_addr;
+	socklen_t serveraddrlen;
 
+    struct sockaddr *client_addr;
+	socklen_t clientaddrlen;
 } state_t;
 
 typedef struct address{

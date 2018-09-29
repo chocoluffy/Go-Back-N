@@ -1,6 +1,8 @@
 #include "gbn.h"
 
 address addr_book;
+state_t server_state;
+state_t client_state;
 
 uint16_t checksum(uint16_t *buf, int nwords)
 {
@@ -68,7 +70,10 @@ int gbn_close(int sockfd){
 
 int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 
-	/* TODO: Your code here. */
+	/**
+	 * send SYN to the server.
+	 * receive SYNACK.
+	 */
 	gbnhdr syn;
 	syn.type = SYN;
 	int retval = (int) sendto(sockfd, &syn, sizeof(syn), 0, server, socklen);
