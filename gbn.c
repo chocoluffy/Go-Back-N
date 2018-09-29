@@ -105,11 +105,13 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 		* - timeout: repeat connect.
 		* - successfully receive SYNACK, move to next state.
 		*/
+
 		while (1) {
 			gbnhdr buf;
-			struct sockaddr_in from_addr;
-			int from_len = sizeof(from_addr);
-			int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, &from_addr, from_len);
+			struct sockaddr* from_addr;
+			socklen_t from_len = sizeof(from_addr);
+			int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
+			printf("## after receive packet from server. print server addr len %d. \n", from_addr->sa_len);
 			printf("## receive something: %d. \n", retval);
 			if (buf.type == SYNACK) {
 				printf("successfully received SYNACK. \n");
@@ -147,22 +149,39 @@ int gbn_socket(int domain, int type, int protocol){
 int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 	gbnhdr buf;
 	/* TODO: Your code here. */
-	while(1) {
+	// while(1) {
 		/* [1] call recvfrom. to get SYNC.*/
+		printf("##before %d\n", client->sa_len);
 		int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, client, socklen);
+		printf("##after %d\n", client->sa_len);
+
 		if (buf.type == SYN) {
 			/* [2] check SYNC integrity.*/
 			/* [3] init SYNACK.*/
 			gbnhdr synack;
 			synack.type = SYNACK;
+			synack.seqnum = 1;
+			synack.checksum = 0;
 			/* [4] call sendto, reply with SYNACK.*/
-			sendto(sockfd, &synack, sizeof(synack), 0, client, socklen);
-            s.addr = (struct sockaddr *) client;
+			printf("##before server send SYNACK back to client. client addr len %d\n", client->sa_len);
+			int retval = sendto(sockfd, &synack, sizeof(synack), 0, client, *socklen);
+			printf("## server send SYNACK, actual send: %d. \n", retval);
+			if (retval < 0) {
+				printf("error num: %s. \n", strerror(errno));
+				exit(-1);
+			}
+            s.addr = client;
 			s.addrlen = socklen;
-            break;
+            // break;
+			printf("server successfully receive SYN and reply with SYNACK. Move to state.\n");
+
+			// while(1) {
+			// 	sendto(sockfd, &synack, sizeof(synack), 0, client, socklen);
+			// 	printf("server sends to client synack.. \n");
+			// }
 		}
-	}
-	printf("server successfully receive SYN and reply with SYNACK. Move to state.\n");
+	// 
+
 	return(sockfd);
 }
 
