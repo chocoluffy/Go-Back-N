@@ -40,7 +40,7 @@ extern int errno;
 typedef struct {
 	uint8_t  type;            /* packet type (e.g. SYN, DATA, ACK, FIN)     */
 	uint8_t  seqnum;          /* sequence number of the packet              */
-	/* uint8_t  acknum;  during established, we need acknum to know which packet to re-transimit. */
+	uint8_t  acknum;
     uint16_t checksum;        /* header and payload checksum                */
     uint8_t data[DATALEN];    /* pointer to the payload                     */
 } __attribute__((packed)) gbnhdr;
@@ -53,12 +53,12 @@ typedef struct state_t{
 	/* TODO: Your state information could be encoded here. */
 	/* shared attributes.*/
 	
-	int identity; /* 0: client; 1: server */
-
 	int seq_num;
 	int ack_num;
 	int data_len;
-	int mode;
+	int mode; /* N: is 2^(mode) */
+
+	gbnhdr segment;
 
 	struct sockaddr *addr;
 	socklen_t addrlen;
