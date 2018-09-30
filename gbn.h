@@ -42,6 +42,7 @@ typedef struct {
 	uint8_t  seqnum;          /* sequence number of the packet              */
 	uint8_t  acknum;
     uint16_t checksum;        /* header and payload checksum                */
+	uint16_t  body_len;
     uint8_t data[DATALEN];    /* pointer to the payload                     */
 } __attribute__((packed)) gbnhdr;
 

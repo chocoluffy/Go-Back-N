@@ -48,15 +48,51 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 	 * any type can be corrupted.
 	 * if it's a DATA packet, check sequence number to see if there is packet lost.
 	 */
-	struct sockaddr_in from_addr;
-	int from_len = sizeof(from_addr);
-	int retval = (int) recvfrom(sockfd, buf, len, flags, &from_addr, &from_len);	
-	if (retval < 0) {
-		perror("recvfrom in gbn_recv()");
-		exit(-1);
+	gbnhdr received_data;
+	struct sockaddr* from_addr;
+	socklen_t from_len = sizeof(from_addr);
+	int cumulative_len = 0;
+	int curr_ack = s.ack_num;
+	int buf_ptr = 0;
+	while(1) {
+		int retval = (int) recvfrom(sockfd, &received_data, len, flags, &from_addr, &from_len);	
+		if (retval < 0) {
+			perror("recvfrom in gbn_recv()");
+			exit(-1);
+		}
+		if (received_data.type == SYN) { /* resend SYNACK. */
+			gbnhdr synack;
+			synack.type = SYNACK;
+			synack.seqnum = 1;
+			synack.checksum = 0;
+			sendto(sockfd, &synack, sizeof(synack), 0, from_addr, from_len);
+			continue;
+		}
+		if (received_data.type == DATA) { 
+			if (curr_ack == 1 || curr_ack == received_data.seqnum) { 
+				/* 
+				 * write received_data into buf. 
+				 * body_len = DATALEN, except for the last packet.
+				 */
+				curr_ack = received_data.seqnum + received_data.body_len;
+				for (int i = 0; i < received_data.body_len; i++) {
+					((uint8_t*)buf)[buf_ptr + i] = received_data.data[i];
+				}
+				buf_ptr += received_data.body_len;
+				cumulative_len += received_data.body_len;
+			}
+			else if(curr_ack < received_data.seqnum) {
+				/* send duplicate ack.  */
+				gbnhdr dupack;
+				dupack.type = DATA;
+				dupack.seqnum = -1;
+				dupack.acknum = curr_ack;
+				sendto(sockfd, &dupack, sizeof(dupack), 0, from_addr, from_len);
+			}
+			printf("Server receives segment of size: %d. \n", cumulative_len);
+			return(cumulative_len);
+		}
 	}
-	printf("Server receives segment of size: %d. \n", retval);
-	return(retval);
 }
 
 int gbn_close(int sockfd){
