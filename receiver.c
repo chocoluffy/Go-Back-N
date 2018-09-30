@@ -65,18 +65,20 @@ int main(int argc, char *argv[])
 
 	/*----- Reading from the socket and dumping it to the file -----*/
 	while(1){
-		if ((numRead = gbn_recv(newSockfd, buf, DATALEN, 0)) == -1){
+		if ((numRead = (int) gbn_recv(newSockfd, buf, DATALEN, 0)) == -1){
 			perror("gbn_recv");
 			exit(-1);
 		}
-		else if (numRead == 0)
+		if (numRead == 0)
 			break;
-		printf("read from buffer: %d.. @%s@ \n", numRead, buf);
-		fwrite(buf, 1, numRead, outputFile);
-		fclose(outputFile);
+		if (numRead > 0 && ((gbnhdr *) buf)->type == DATA) {
+			printf("read from buffer: %d.. @%s@ \n", numRead, buf);
+			fwrite(buf, 1, numRead, outputFile);
+		}
 	}
 
 	/*----- Closing the socket -----*/
+	printf("Before close(). \n");
 	if (gbn_close(sockfd) == -1){
 		perror("gbn_close");
 		exit(-1);

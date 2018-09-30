@@ -64,3 +64,20 @@ client and server have two different byte stream.
 
 seq num means the position at self's stream;
 ack num means how many has received from the other's stream. which can be also used for the other's next seq num.
+
+3. logic of close()
+- Either client or server can initiate closing the communication by sending a FIN packet
+- Wait for a FINACK or FIN.
+    - If FINACK is received, exit directly
+    - If FIN is received, reply a FINACK and exit (this is in case of FINACK lost and the target client/server is already exited)
+
+----
+## TODO
+1. put checksum into use
+2. mark the packet with type DATA in gbn_send()
+3. add RST
+
+----
+## POSSIBLE PROBLEMS
+1. ack_num, seq_num are uint_8, however, the initial values are rand()%100, which could be very close to the upper bound
+2.

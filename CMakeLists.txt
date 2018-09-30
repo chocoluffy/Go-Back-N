@@ -3,4 +3,4 @@ project(ass1-test C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(ass1-test gbn.c receiver.c)
+add_executable(ass1-test gbn.c sender.c)
