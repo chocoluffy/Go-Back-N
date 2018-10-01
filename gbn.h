@@ -55,8 +55,10 @@ typedef struct state_t{
 	/* shared attributes.*/
 	
 	int sockfd;
-	int seq_num;
-	int ack_num;
+	int seq_num; /* legacy. */
+	int next_expected_seq_num; /* after a segment sent, next expected seq num. */
+	int ack_num; /* legacy. */
+	int curr_ack_num; /* ack_num for current segment, construct from last received segment's seq and body_len. */
 	int data_len;
 	int mode; /* N: is 2^(mode) */
 	int status;
