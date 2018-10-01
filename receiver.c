@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 	}
 
 	/*----- Closing the socket -----*/
-	printf("Before close(). \n");
+	printf("before gbn_close(). \n");
 	if (gbn_close(sockfd) == -1){
 		perror("gbn_close");
 		exit(-1);

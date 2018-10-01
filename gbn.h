@@ -59,6 +59,7 @@ typedef struct state_t{
 	int ack_num;
 	int data_len;
 	int mode; /* N: is 2^(mode) */
+	int status;
 
 	gbnhdr segment;
 

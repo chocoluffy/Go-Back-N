@@ -6,19 +6,18 @@ void alarm_handler(int sig) {
     signal(SIGALRM, SIG_IGN); /* ignore same signal interrupting. */
 
     if (s.segment.type == SYN) {
-        printf("re-send SYN to server.\n");
+        printf("[alarm_handler]: re-send SYN...\n");
         if (sendto(s.sockfd, &s.segment, sizeof(s.segment), 0, s.addr, s.addrlen) < 0) {
             perror("error in sendto() at gbn_connect()");
             exit(-1);
         }
     }
     if (s.segment.type == FIN) {
-        printf("re-send FIN.\n");
+        printf("[alarm_handler]: re-send FIN...\n");
         if (sendto(s.sockfd, &s.segment, sizeof(s.segment), 0, s.addr, s.addrlen) < 0) {
             perror("error in sendto() at gbn_close()");
             exit(-1);
         }
-        printf("FIN re-send finished. \n");
     }
 
     signal(SIGALRM, alarm_handler); /* re-register handler. */
@@ -87,6 +86,9 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 	int cumulative_len = 0;
 	int curr_ack = s.ack_num;
 	int buf_ptr = 0;
+	
+	/* printf("[gbn_recv]: check s.addr: %d.\n", s.addr->sa_len); */
+
 	while(1) {
 		int retval = (int) recvfrom(sockfd, &received_data, len, flags, &from_addr, &from_len);	
 		if (retval < 0) {
@@ -94,14 +96,28 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 			exit(-1);
 		}
 		if (received_data.type == SYN) { /* resend SYNACK. */
+			printf("[gbn_recv]: receive SYN..\n");
 			gbnhdr synack;
 			synack.type = SYNACK;
 			synack.seqnum = 1;
 			synack.checksum = 0;
-			sendto(sockfd, &synack, sizeof(synack), 0, from_addr, from_len);
+			sendto(sockfd, &synack, sizeof(synack), 0, s.addr, s.addrlen);
+			printf("[gbn_recv]: reply SYNACK..\n");
 			continue;
 		}
-		if (received_data.type == DATA) { 
+		if (received_data.type == FIN) { 
+			printf("[gbn_recv]: receive FIN..\n");
+			gbnhdr finack;
+			finack.type = FINACK;
+			finack.seqnum = 1;
+			finack.checksum = 0;
+			sendto(sockfd, &finack, sizeof(finack), 0, s.addr, s.addrlen);
+			printf("[gbn_recv]: reply FINACK..\n");
+			s.status = FIN_RCVD;
+			// return 0;
+		}
+		if (received_data.type == DATA) {
+			printf("[gbn_recv]: receive DATA..\n"); 
 			if (curr_ack == 1 || curr_ack == received_data.seqnum) { 
 				/* 
 				 * write received_data into buf. 
@@ -121,7 +137,7 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 				dupack.type = DATAACK;
 				dupack.seqnum = (uint8_t) -1;
 				dupack.acknum = (uint8_t) curr_ack;
-				sendto(sockfd, &dupack, sizeof(dupack), 0, from_addr, from_len);
+				sendto(sockfd, &dupack, sizeof(dupack), 0, s.addr, s.addrlen);
 			}
 			printf("Server receives segment of size: %d. \n", cumulative_len);
 			return(cumulative_len);
@@ -132,55 +148,61 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 
 int gbn_close(int sockfd) {
 
-    /* TODO: Your code here. */
     if (s.status == FIN_RCVD)
         return 0;
-    signal(SIGALRM, alarm_handler);
-    gbnhdr fin_segment;
-    fin_segment.type = FIN;
 
-    /* construct current syn packet. */
-    int retval = (int) sendto(sockfd, &fin_segment, sizeof(fin_segment), 0, s.addr, s.addrlen);
-    if (retval < 0) {
-        perror("error in sendto() at close()");
-        exit(-1);
-    }
-    s.status = FIN_SENT;
-    s.segment = fin_segment; /* update state(prev state) */
-    printf("successfully send FIN packet to server side.\n");
+	signal(SIGALRM, alarm_handler);
 
-    alarm(TIMEOUT); /* start timer. */
-    /* wait for FINACK / FIN.
-    * - timeout: repeat connect.
-    * - successfully receive FINACK / FIN, close connection.
-    */
-    struct sockaddr *from_addr;
-    socklen_t from_len = sizeof(from_addr);
-    while (1) {
-        gbnhdr buf;
-        int retval_rec = (int) recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
-        if (retval_rec < 0) {
-            perror("error in recvfrom() at gbn_close()");
-            exit(-1);
-        }
-        if (buf.type == FINACK) {
-            alarm(0); /* clear all existing timers. */
-            printf("Successfully received FINACK. Connection closed\n");
-            s.status = FIN_RCVD;
-            return (close(sockfd));
-        }
-        if (buf.type == FIN) {
-            alarm(0); /* clear all existing timers. */
-            gbnhdr finack_segment;
-            finack_segment.type = FIN;
-            finack_segment.seqnum = (uint8_t) s.seq_num;
-            finack_segment.acknum = (uint8_t) s.ack_num;
-            sendto(sockfd, &finack_segment, sizeof(finack_segment), 0, s.addr, s.addrlen);
-            printf("Successfully received FIN. FINACK replied and connection closed\n");
-            s.status = FIN_RCVD;
-            return (close(sockfd));
-        }
-    }
+	while (1) {
+		/* construct current fin packet. */
+		gbnhdr fin_segment;
+		fin_segment.type = FIN;
+
+		int retval = (int) sendto(sockfd, &fin_segment, sizeof(fin_segment), 0, s.addr, s.addrlen);
+		if (retval < 0) {
+			perror("error in sendto() at close()");
+			exit(-1);
+		}
+
+		s.status = FIN_SENT;
+		s.segment = fin_segment; /* update state(prev state) */
+		printf("[gbn_close]: send FIN.\n");
+		alarm(TIMEOUT); /* start timer. */
+		
+		/* wait for FINACK / FIN.
+		* - timeout: repeat connect.
+		* - successfully receive FINACK / FIN, close connection.
+		*/
+		struct sockaddr *from_addr;
+		socklen_t from_len = sizeof(from_addr);
+		gbnhdr buf;
+		while (1) {
+			printf("[gbn_close]: start listening...\n");
+			int retval_rec = recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
+			if (retval_rec < 0) {
+				perror("error in recvfrom() at gbn_close()");
+				exit(-1);
+			}
+			if (buf.type == FINACK) {
+				printf("[gbn_close]: received FINACK...\n");
+				alarm(0); /* clear all existing timers. */
+				s.status = FIN_RCVD;
+				return (close(sockfd));
+			}
+			if (buf.type == FIN) {
+				printf("[gbn_close]: received FIN...\n");
+				alarm(0); /* clear all existing timers. */
+				gbnhdr finack_segment;
+				finack_segment.type = FIN;
+				finack_segment.seqnum = (uint8_t) s.seq_num;
+				finack_segment.acknum = (uint8_t) s.ack_num;
+				sendto(sockfd, &finack_segment, sizeof(finack_segment), 0, s.addr, s.addrlen);
+				printf("Successfully received FIN. FINACK replied and connection closed\n");
+				s.status = FIN_RCVD;
+				return (close(sockfd));
+			}
+		}
+	}
 }
 
 
@@ -224,21 +246,21 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 
 		s.addr = (struct sockaddr *) server;
 		s.addrlen = socklen;
-		printf("successfully send SYN packet to server side.\n");
+		printf("[gbn_connect]: send SYN.\n");
 
 		/* wait for SYNACK. 
 		* - timeout: repeat connect.
 		* - successfully receive SYNACK, move to next state.
 		*/
-		
+		gbnhdr buf;
+
 		int i = 0;
 		while (1) {
 
-			if (i == 0)
+			if (i == 0) /* simulate delay. */
 				sleep(2);
 			i++;
 
-			gbnhdr buf;
 			struct sockaddr* from_addr;
 			socklen_t from_len = sizeof(from_addr);
 			int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
@@ -248,7 +270,7 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 			}
 			if (buf.type == SYNACK) {
 				alarm(0); /* clear all existing timers. */
-				printf("successfully received SYNACK. \n");
+				printf("[gbn_connect]: received SYNACK. \n");
 				return(0);
 			} 
 		}
@@ -301,8 +323,8 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 				exit(-1);
 			}
             s.addr = client;
-			s.addrlen = socklen;
-			printf("server successfully receive SYN and reply with SYNACK. Move to state.\n");
+			s.addrlen = *socklen;
+			printf("[gbn_accept]: server successfully receive SYN and reply with SYNACK. Move to state.\n");
             break;
 		}
 	}
