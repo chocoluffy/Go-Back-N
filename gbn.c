@@ -28,6 +28,7 @@ void alarm_handler(int sig) {
     }
 
     signal(SIGALRM, alarm_handler); /* re-register handler. */
+	alarm(TIMEOUT);
 }
 
 uint16_t checksum(uint16_t *buf, int nwords)
@@ -154,14 +155,13 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 		}
 		if (received_data.type == DATA) {
 			printf("[gbn_recv]: received one DATA segment. seq_num = %d, ack_num = %d, body_len = %d.\n", received_data.seqnum, received_data.acknum, received_data.body_len);
-			((gbnhdr *) buf)->type = DATA;
 			if (s.curr_ack_num == 1 || s.curr_ack_num == received_data.seqnum) { 
 
 				/* send correct ack. */
 				gbnhdr dataack;
 				dataack.type = DATAACK;
 				dataack.seqnum = received_data.acknum;
-				dataack.acknum = received_data.seqnum + received_data.body_len;
+				dataack.acknum = (int)received_data.seqnum + (int)received_data.body_len;
 				dataack.body_len = 1; /* ACK's body_len = 1? */
 				sendto(sockfd, &dataack, sizeof(dataack), 0, s.addr, s.addrlen);
 				printf("[gbn_recv]: reply DATAACK. seq_num = %d, ack_num = %d, body_len = %d.\n", dataack.seqnum, dataack.acknum, dataack.body_len);
@@ -177,7 +177,7 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 				for (i = 0; i < received_data.body_len; i++) {
 					((uint8_t*)buf)[i] = received_data.data[i];
 				}
-				printf("[gbn_recv]: write to buf. len = %d, content = %d.\n", received_data.body_len, received_data.data[0]);
+				printf("[gbn_recv]: write to buf. len = %d.\n", received_data.body_len);
 				return(received_data.body_len);
 			}
 			else if(s.curr_ack_num < received_data.seqnum) {

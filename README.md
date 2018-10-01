@@ -4,6 +4,15 @@ Shunzhe Yu & Xiangru Qian
 
 ------
 
+[10.1]
+
+uint32_t  seqnum;
+uint32_t  acknum;
+uint16_t  body_len;
+
+because we need to calculate ack_num = seq_num + body_len.
+
+
 [9.30] debug
 
 - most of time, when we find from console output that *some packet are sent but not received from the other end. check if the `sendto()` and `recvfrom()` api are written correctly! be extremely careful on the type of addr and addrlen!*
