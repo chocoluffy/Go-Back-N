@@ -69,16 +69,15 @@ int main(int argc, char *argv[])
 			perror("gbn_recv");
 			exit(-1);
 		}
+		printf("read from buffer. type = %d, len = %d, content = @%s@. \n", ((gbnhdr *) buf)->type, numRead, buf);
 		if (numRead == 0)
 			break;
 		if (numRead > 0 && ((gbnhdr *) buf)->type == DATA) {
-			printf("read from buffer: %d.. @%s@ \n", numRead, buf);
 			fwrite(buf, 1, numRead, outputFile);
 		}
 	}
 
 	/*----- Closing the socket -----*/
-	printf("before gbn_close(). \n");
 	if (gbn_close(sockfd) == -1){
 		perror("gbn_close");
 		exit(-1);

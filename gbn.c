@@ -154,6 +154,7 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 		}
 		if (received_data.type == DATA) {
 			printf("[gbn_recv]: received one DATA segment. seq_num = %d, ack_num = %d, body_len = %d.\n", received_data.seqnum, received_data.acknum, received_data.body_len);
+			((gbnhdr *) buf)->type = DATA;
 			if (s.curr_ack_num == 1 || s.curr_ack_num == received_data.seqnum) { 
 
 				/* send correct ack. */
@@ -194,10 +195,10 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 
 int gbn_close(int sockfd) {
 
-    if (s.status == FIN_RCVD)
-        return 0;
-
-	signal(SIGALRM, alarm_handler);
+    if (s.status == FIN_RCVD) {
+		printf("[gbn_close]: connection already closed. exit.\n");
+		return 0;
+	}
 
 	while (1) {
 		/* construct current fin packet. */
