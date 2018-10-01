@@ -61,7 +61,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 		perror("sendto in gbn_send()");
 		exit(-1);
 	}
-	printf("expect to send %d, actually send %d\n", len, retval);
+	printf("[gbn_send]: send %d\n", retval);
 	/* for (int i = 0; i < segment_num; i++) {
 	 	segment_ptr = buf + i * DATALEN;
 	 	int retval = (int) sendto(sockfd, segment_ptr, DATALEN, 0, addr_book.server_addr, addr_book.serveraddrlen);

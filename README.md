@@ -6,7 +6,11 @@ Shunzhe Yu & Xiangru Qian
 
 [9.30] debug
 
-- most of time, when we find from console output that *some packet are sent but not received from the other end. check if the sendto() and recvfrom() api are written correctly! be extremely careful on the type of addr and addrlen!*
+- most of time, when we find from console output that *some packet are sent but not received from the other end. check if the `sendto()` and `recvfrom()` api are written correctly! be extremely careful on the type of addr and addrlen!*
+
+- the correct logic of how to send a packet is implemented in `connect()`, put `sendto()` inside a while loop and `recvfrom()` in the nested while loop!
+
+- how the seq num works? in byte or packet number?
 
 [9.29]
 
