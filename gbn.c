@@ -156,6 +156,13 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 	/* printf("[gbn_recv]: check s.addr: %d.\n", s.addr->sa_len); */
 
 	while(1) {
+
+		/* clear all old buf content. */
+		int k;
+		for (k = 0; k < DATALEN; k++) {
+			((uint8_t*)buf)[k] = '\0';
+		}
+
 		gbnhdr received_data;
 		struct sockaddr* from_addr;
 		socklen_t from_len = sizeof(from_addr);
