@@ -200,7 +200,8 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 				/* send correct ack. */
 				gbnhdr dataack;
 				dataack.type = DATAACK;
-				dataack.seqnum = received_data.acknum;
+				dataack.seqnum = s.prev_seq_num;
+				s.prev_seq_num++;
 				dataack.acknum = (int)received_data.seqnum + (int)received_data.body_len;
 				dataack.body_len = 1; /* ACK's body_len = 1? */
 				sendto(sockfd, &dataack, sizeof(dataack), 0, s.addr, s.addrlen);

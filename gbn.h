@@ -57,6 +57,7 @@ typedef struct state_t{
 	int sockfd;
 	int seq_num; /* legacy. */
 	int next_expected_seq_num; /* after a segment sent, next expected seq num. */
+	int prev_seq_num; /* server side gbn_recv(). */
 	int ack_num; /* legacy. */
 	int curr_ack_num; /* ack_num for current segment, construct from last received segment's seq and body_len. */
 	int data_len;
