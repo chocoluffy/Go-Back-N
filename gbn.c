@@ -54,7 +54,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 
 	/* simulate GBN, N = 2. */
 	printf("[gbn_send]: expect to send content of length = %d. \n", len);
-	int window_size = 2;
+	int window_size = 4;
 
 	/* init value. */
 	int init_seq_num = 1;
@@ -74,7 +74,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 		
 		int window_counter = 0;
 
-		while(window_counter < window_size) { 
+		while(window_counter < window_size && buf_ptr < len) { 
 			/* window size numbers of segment can be sent sequentially. */
 
 			gbnhdr new_segment;
@@ -128,7 +128,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 					window_buffer_ptr++;
 					next_expected_ack_num = next_expected_ack_num + window_buffer[window_buffer_ptr][2]; /* last ack num + next segment's body_len. */
 					s.curr_ack_num = received_data.seqnum + received_data.body_len;
-					if (window_buffer_ptr == window_size) {
+					if (window_buffer_ptr == window_size) { /* TODO. */
 						/* when receive all data from client, break; otherwise, keep listening. */
 						break;
 					}
