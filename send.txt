@@ -11,3 +11,71 @@ Full disclosure, I’m still learning myself. I am actually in the middle of an 
 The Tools
 I work in a Ruby environment, using the Rails framework, and hosting everything with Heroku (which uses PostgreSQL) for web apps. This will be the most useful for someone using something similar but not required to just understand Instagram’s API. Lets break down the tools.
 
+Instagram and You.
+The power of social media is fantastic and people are using Instagram to do some pretty amazing things. Companies are making real-time mosaics for events and parties, printing out Instagram photos using instaprint. People are creating iPhone cases with their own pictures. Marketers are building platforms to creatively communicate to their customers. Others are finding ways to take Instagram pictures physical.
+
+Developers are still exploring what can be done, making things like a real-time exploration of places through the eyes of Instagram, battling pictures against each other, making your background your feed, enjoying the cats of Instagram, or even trying to help people with an idea I’ve been working on. The point is, now, more than ever, you can do some amazing stuff. Enough talking, lets get into it shall we?
+
+The Breakdown
+I will be covering two aspects of this API, the tools I work with and the process of using the API in a program. I’m going to focus on getting you up and running, and assume that the ultimate goal is to be able to feed yourself and use this as a reference once you really start digging into Instagram’s API.
+
+Full disclosure, I’m still learning myself. I am actually in the middle of an intensive web development program and am still solidifying my own skills. With that said, Enjoy!
+
+The Tools
+I work in a Ruby environment, using the Rails framework, and hosting everything with Heroku (which uses PostgreSQL) for web apps. This will be the most useful for someone using something similar but not required to just understand Instagram’s API. Lets break down the tools.
+
+Instagram and You.
+The power of social media is fantastic and people are using Instagram to do some pretty amazing things. Companies are making real-time mosaics for events and parties, printing out Instagram photos using instaprint. People are creating iPhone cases with their own pictures. Marketers are building platforms to creatively communicate to their customers. Others are finding ways to take Instagram pictures physical.
+
+Developers are still exploring what can be done, making things like a real-time exploration of places through the eyes of Instagram, battling pictures against each other, making your background your feed, enjoying the cats of Instagram, or even trying to help people with an idea I’ve been working on. The point is, now, more than ever, you can do some amazing stuff. Enough talking, lets get into it shall we?
+
+The Breakdown
+I will be covering two aspects of this API, the tools I work with and the process of using the API in a program. I’m going to focus on getting you up and running, and assume that the ultimate goal is to be able to feed yourself and use this as a reference once you really start digging into Instagram’s API.
+
+Full disclosure, I’m still learning myself. I am actually in the middle of an intensive web development program and am still solidifying my own skills. With that said, Enjoy!
+
+The Tools
+I work in a Ruby environment, using the Rails framework, and hosting everything with Heroku (which uses PostgreSQL) for web apps. This will be the most useful for someone using something similar but not required to just understand Instagram’s API. Lets break down the tools.
+
+
+Instagram and You.
+The power of social media is fantastic and people are using Instagram to do some pretty amazing things. Companies are making real-time mosaics for events and parties, printing out Instagram photos using instaprint. People are creating iPhone cases with their own pictures. Marketers are building platforms to creatively communicate to their customers. Others are finding ways to take Instagram pictures physical.
+
+Developers are still exploring what can be done, making things like a real-time exploration of places through the eyes of Instagram, battling pictures against each other, making your background your feed, enjoying the cats of Instagram, or even trying to help people with an idea I’ve been working on. The point is, now, more than ever, you can do some amazing stuff. Enough talking, lets get into it shall we?
+
+The Breakdown
+I will be covering two aspects of this API, the tools I work with and the process of using the API in a program. I’m going to focus on getting you up and running, and assume that the ultimate goal is to be able to feed yourself and use this as a reference once you really start digging into Instagram’s API.
+
+Full disclosure, I’m still learning myself. I am actually in the middle of an intensive web development program and am still solidifying my own skills. With that said, Enjoy!
+
+The Tools
+I work in a Ruby environment, using the Rails framework, and hosting everything with Heroku (which uses PostgreSQL) for web apps. This will be the most useful for someone using something similar but not required to just understand Instagram’s API. Lets break down the tools.
+
+
+Instagram and You.
+The power of social media is fantastic and people are using Instagram to do some pretty amazing things. Companies are making real-time mosaics for events and parties, printing out Instagram photos using instaprint. People are creating iPhone cases with their own pictures. Marketers are building platforms to creatively communicate to their customers. Others are finding ways to take Instagram pictures physical.
+
+Developers are still exploring what can be done, making things like a real-time exploration of places through the eyes of Instagram, battling pictures against each other, making your background your feed, enjoying the cats of Instagram, or even trying to help people with an idea I’ve been working on. The point is, now, more than ever, you can do some amazing stuff. Enough talking, lets get into it shall we?
+
+The Breakdown
+I will be covering two aspects of this API, the tools I work with and the process of using the API in a program. I’m going to focus on getting you up and running, and assume that the ultimate goal is to be able to feed yourself and use this as a reference once you really start digging into Instagram’s API.
+
+Full disclosure, I’m still learning myself. I am actually in the middle of an intensive web development program and am still solidifying my own skills. With that said, Enjoy!
+
+The Tools
+I work in a Ruby environment, using the Rails framework, and hosting everything with Heroku (which uses PostgreSQL) for web apps. This will be the most useful for someone using something similar but not required to just understand Instagram’s API. Lets break down the tools.
+
+
+Instagram and You.
+The power of social media is fantastic and people are using Instagram to do some pretty amazing things. Companies are making real-time mosaics for events and parties, printing out Instagram photos using instaprint. People are creating iPhone cases with their own pictures. Marketers are building platforms to creatively communicate to their customers. Others are finding ways to take Instagram pictures physical.
+
+Developers are still exploring what can be done, making things like a real-time exploration of places through the eyes of Instagram, battling pictures against each other, making your background your feed, enjoying the cats of Instagram, or even trying to help people with an idea I’ve been working on. The point is, now, more than ever, you can do some amazing stuff. Enough talking, lets get into it shall we?
+
+The Breakdown
+I will be covering two aspects of this API, the tools I work with and the process of using the API in a program. I’m going to focus on getting you up and running, and assume that the ultimate goal is to be able to feed yourself and use this as a reference once you really start digging into Instagram’s API.
+
+Full disclosure, I’m still learning myself. I am actually in the middle of an intensive web development program and am still solidifying my own skills. With that said, Enjoy!
+
+The Tools
+I work in a Ruby environment, using the Rails framework, and hosting everything with Heroku (which uses PostgreSQL) for web apps. This will be the most useful for someone using something similar but not required to just understand Instagram’s API. Lets break down the tools.
+
