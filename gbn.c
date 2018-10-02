@@ -120,7 +120,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 			/* GBN(N=1), immediately wait for DATA ACK to proceed. */
 			struct sockaddr* from_addr;
 			socklen_t from_len = sizeof(from_addr);
-			int retval = recvfrom(sockfd, &received_data, sizeof(received_data), 0, from_addr, &from_len);
+			int retval = maybe_recvfrom(sockfd, &received_data, sizeof(received_data), 0, from_addr, &from_len);
 			if (retval < 0) {
 				perror('error in recvfrom() at gbn_send()');
 				exit(-1);
@@ -174,7 +174,7 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 		struct sockaddr* from_addr;
 		socklen_t from_len = sizeof(from_addr);
 
-		int retval = (int) recvfrom(sockfd, &received_data, len, flags, &from_addr, &from_len);	
+		int retval = (int) maybe_recvfrom(sockfd, &received_data, len, flags, &from_addr, &from_len);	
 		if (retval < 0) {
 			perror("recvfrom in gbn_recv()");
 			exit(-1);
@@ -273,7 +273,7 @@ int gbn_close(int sockfd) {
 		gbnhdr buf;
 		while (1) {
 			printf("[gbn_close]: start listening...\n");
-			int retval_rec = recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
+			int retval_rec = maybe_recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
 			if (retval_rec < 0) {
 				perror("error in recvfrom() at gbn_close()");
 				exit(-1);
@@ -353,7 +353,7 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 
 			struct sockaddr* from_addr;
 			socklen_t from_len = sizeof(from_addr);
-			int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
+			int retval = maybe_recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
 			if (retval < 0) {
 				perror('error in recvfrom() at gbn_connect()');
 				exit(-1);
@@ -397,7 +397,7 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen){
 
 	while(1) {
 		/* [1] call recvfrom. to get SYNC.*/
-		int retval = recvfrom(sockfd, &buf, sizeof(buf), 0, client, socklen);
+		int retval = maybe_recvfrom(sockfd, &buf, sizeof(buf), 0, client, socklen);
 
 		if (buf.type == SYN) {
 			/* [2] check SYNC integrity.*/
