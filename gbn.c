@@ -91,6 +91,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 				segment_ptr++;
 				new_segment.body_len++;
 			}
+			new_segment.checksum = checksum(new_segment.data, new_segment.body_len);
 			buf_ptr += segment_ptr;
 			this_window_total_data += new_segment.body_len;
 
@@ -202,7 +203,18 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 		}
 		if (received_data.type == DATA) {
 			printf("[gbn_recv]: received one DATA segment. seq_num = %d, ack_num = %d, body_len = %d.\n", received_data.seqnum, received_data.acknum, received_data.body_len);
-			if (s.curr_ack_num == 1 || s.curr_ack_num == received_data.seqnum) { 
+
+			/* check whether the data is corrupted */
+			bool passed_checksum = true;
+			if(received_data.checksum != checksum(received_data.data, received_data.body_len)){
+				printf("[gbn_recv]: The data is corrupted. Checksum should be %d, but it is actually %d\n", received_data.checksum, checksum(received_data.data, received_data.body_len));
+				passed_checksum = false;
+			}
+			else {
+				printf("[gbn_recv]: Data integrity checked.\n");
+			}
+
+			if (s.curr_ack_num == 1 || s.curr_ack_num == received_data.seqnum) {
 
 				/* send correct ack. */
 				gbnhdr dataack;
@@ -228,7 +240,7 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 				printf("[gbn_recv]: write to buf. len = %d.\n", received_data.body_len);
 				return(received_data.body_len);
 			}
-			else if(s.curr_ack_num < received_data.seqnum) {
+			else if(s.curr_ack_num < received_data.seqnum || (! passed_checksum)) {
 				/* send duplicate ack.  */
 				gbnhdr dupack;
 				dupack.type = DATAACK;

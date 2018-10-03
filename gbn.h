@@ -14,13 +14,14 @@
 #include<errno.h>
 #include<netdb.h>
 #include<time.h>
+#include <stdbool.h>
 
 /*----- Error variables -----*/
 extern int h_errno;
 extern int errno;
 
 /*----- Protocol parameters -----*/
-// #define LOSS_PROB 1e-2    /* loss probability                            */
+#define LOSS_PROB 1e-2    /* loss probability                            */
 #define LOSS_PROB 0.5    /* loss probability                            */
 #define CORR_PROB 1e-3    /* corruption probability                      */
 #define DATALEN   1024    /* length of the payload                       */
