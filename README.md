@@ -3,6 +3,16 @@
 Shunzhe Yu & Xiangru Qian
 
 ------
+[10.3]
+
+- checksum done
+
+TODO: 
+1. check Piazza, some useful info has been updated.
+2. 5 time-outs, halt the connection.
+3. checksum: parameter type consistancy??? (unsigned short vs uint_16)
+
+------
 
 [10.1]
 
