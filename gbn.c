@@ -36,16 +36,16 @@ uint16_t checksum(uint8_t *buf, int nwords)
 {
 	uint32_t sum;
 
-/* 	for (sum = 0; nwords > 0; nwords--)
+	for (sum = 0; nwords > 0; nwords--)
 		sum += *buf++;
-	sum = (sum >> 16) + (sum & 0xffff);
-	sum += (sum >> 16);
-	return ~sum; */
-	int i = 0;
-	for (sum = 0; i < nwords; i++){
-		// printf(" #### check sum: (%c, %d), sum = %d ####\n", buf[i], buf[i], sum);
-		sum += buf[i];
-	}
+	sum = (sum >> 8) + (sum & 0xff);
+	sum += (sum >> 8);
+	return ~sum;
+	// int i = 0;
+	// for (sum = 0; i < nwords; i++){
+	// 	// printf(" #### check sum: (%c, %d), sum = %d ####\n", buf[i], buf[i], sum);
+	// 	sum += buf[i];
+	// }
 	return sum;
 
 }
