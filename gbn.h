@@ -21,12 +21,13 @@ extern int h_errno;
 extern int errno;
 
 /*----- Protocol parameters -----*/
-#define LOSS_PROB 1e-2    /* loss probability                            */
 #define LOSS_PROB 0.5    /* loss probability                            */
-#define CORR_PROB 1e-3    /* corruption probability                      */
+#define CORR_PROB 0    /* corruption probability                      */
+/* #define CORR_PROB 1e-3    corruption probability                     */
 #define DATALEN   1024    /* length of the payload                       */
 #define N         1024    /* Max number of packets a single call to gbn_send can process */
 #define TIMEOUT      1    /* timeout to resend packets (1 second)        */
+#define SEGMENT_SIZE 1037 /* sizeof(struct gbnhdr) */
 
 /*----- Packet types -----*/
 #define SYN      0        /* Opens a connection                          */
@@ -97,7 +98,7 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags);
 ssize_t  maybe_recvfrom(int  s, char *buf, size_t len, int flags, \
             struct sockaddr *from, socklen_t *fromlen);
 
-uint16_t checksum(uint16_t *buf, int nwords);
+uint16_t checksum(uint8_t *buf, int nwords);
 
 
 #endif

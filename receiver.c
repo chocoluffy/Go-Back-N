@@ -5,7 +5,7 @@ int main(int argc, char *argv[])
 	int sockfd;
 	int newSockfd;
 	int numRead;
-	char buf[DATALEN];
+	char buf[DATALEN]; /* pad a \0 at the end.*/
 	struct sockaddr_in server;
 	struct sockaddr_in client;
 	FILE *outputFile;
