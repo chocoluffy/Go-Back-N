@@ -20,6 +20,7 @@ void alarm_handler(int sig) {
         }
     }
 	if (s.segment.type == DATA) {
+		// s.segment.seqnum = s.client_timeout_seq_num;
 		printf("[alarm_handler]: re-send DATA segment. seq_num = %d, ack_num = %d, body_len = %d.\n", s.segment.seqnum, s.segment.acknum, s.segment.body_len);
         if (sendto(s.sockfd, &s.segment, sizeof(s.segment), 0, s.addr, s.addrlen) < 0) {
             perror("error in sendto() at gbn_close()");
@@ -59,7 +60,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 	/* init value. */
 	int init_seq_num = 1;
 	s.next_expected_seq_num = init_seq_num; /* for checking when receiving data ack. */
-	s.curr_ack_num = 1;
+	// s.curr_ack_num = 1;
 	int next_seq_num = init_seq_num; /* for cumulating the segment seq num in window. */
 
 	gbnhdr received_data;
@@ -114,7 +115,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 			for(int ii = 0; ii < new_segment.body_len; ii ++){
 					printf("the %d-th char, which is (%d, %c)\n", ii,new_segment.data[ii],new_segment.data[ii]);
 			} */
-			printf("**** cur seg size = %d ****\n", sizeof(s.segment));
+			// printf("**** cur seg size = %d ****\n", sizeof(s.segment));
 			sendto(sockfd, &s.segment, sizeof(s.segment), 0, s.addr, s.addrlen);
 			printf("[gbn_send]: send one DATA segment. seq_num = %d, ack_num = %d, body_len = %d.\n", new_segment.seqnum, new_segment.acknum, new_segment.body_len);
 			
@@ -170,7 +171,6 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 	 */
 
 	int cumulative_len = 0;
-	s.curr_ack_num = 1;
 	
 	/* printf("[gbn_recv]: check s.addr: %d.\n", s.addr->sa_len); */
 
@@ -186,7 +186,7 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 		struct sockaddr* from_addr;
 		socklen_t from_len = sizeof(from_addr);
 
-		int retval = (int) recvfrom(sockfd, &received_data, SEGMENT_SIZE, flags, &from_addr, &from_len);	
+		int retval = (int) maybe_recvfrom(sockfd, &received_data, SEGMENT_SIZE, flags, &from_addr, &from_len);	
 		if (retval < 0) {
 			perror("recvfrom in gbn_recv()");
 			exit(-1);
@@ -227,7 +227,7 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 				printf("[gbn_recv]: Data integrity checked.\n");
 			}
 
-			if (s.curr_ack_num == 1 || s.curr_ack_num == received_data.seqnum) {
+			if ((s.curr_ack_num == 1 || s.curr_ack_num == received_data.seqnum) && passed_checksum) {
 /* 				printf("**** received segment len = %d ****\n", received_data.body_len);
 				printf("**** first is %c ****\n", received_data.data[0]);
 				printf("**** last is %c ****\n", received_data.data[received_data.body_len - 1]);
@@ -241,13 +241,16 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 				dataack.type = DATAACK;
 				dataack.seqnum = s.prev_seq_num;
 				s.prev_seq_num++;
-				dataack.acknum = (int)received_data.seqnum + (int)received_data.body_len;
+				dataack.acknum = received_data.seqnum + received_data.body_len;
 				dataack.body_len = 1; /* ACK's body_len = 1? */
 				sendto(sockfd, &dataack, sizeof(dataack), 0, s.addr, s.addrlen);
 				printf("[gbn_recv]: reply DATAACK. seq_num = %d, ack_num = %d, body_len = %d.\n", dataack.seqnum, dataack.acknum, dataack.body_len);
 
 				/* expect next segment's seq num to equal this. */
+				printf("**** current ack num: %d ****.\n", s.curr_ack_num);
 				s.curr_ack_num = dataack.acknum;
+				// s.client_timeout_seq_num = dataack.acknum;
+				printf("**** update current ack num to: %d ****.\n", s.curr_ack_num);
 
 				/* 
 				 * write received_data into buf. 
@@ -260,13 +263,14 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 				printf("[gbn_recv]: write to buf. len = %d.\n", received_data.body_len);
 				return(received_data.body_len);
 			}
-			else if(s.curr_ack_num < received_data.seqnum || (! passed_checksum)) {
+			else if((s.curr_ack_num < received_data.seqnum) || (! passed_checksum)) {
 				/* send duplicate ack.  */
 				gbnhdr dupack;
 				dupack.type = DATAACK;
-				dupack.seqnum = (uint8_t) -1;
-				dupack.acknum = (uint8_t) s.curr_ack_num;
+				dupack.seqnum = -1;
+				dupack.acknum = s.curr_ack_num;
 				sendto(sockfd, &dupack, sizeof(dupack), 0, s.addr, s.addrlen);
+				printf("[gbn_recv]: reply dup DATAACK. seq_num = %d, ack_num = %d, body_len = %d.\n", dupack.seqnum, dupack.acknum, dupack.body_len);
 			}
 		}
 	}
@@ -352,6 +356,8 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 	s.ack_num = -1;
 	s.data_len = 0;
 	s.mode = 0;
+	s.curr_ack_num = 1;
+	// s.client_timeout_seq_num = 1;
 
 	signal(SIGALRM, alarm_handler);
 
@@ -403,6 +409,7 @@ int gbn_listen(int sockfd, int backlog){
 
 	/* TODO: Your code here. */
 	/* return listen(sockfd,  backlog); */
+	s.curr_ack_num = 1; /* init server side first ack num. */
 	return 1;
 	/* return(-1); */
 }
