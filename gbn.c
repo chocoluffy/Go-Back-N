@@ -3,6 +3,11 @@
 state_t s;
 
 void alarm_handler(int sig) {
+	s.timeout_times++;
+	if(s.timeout_times > 5) {
+		/*  close connection. */
+		gbn_close(s.sockfd);
+	}
     signal(SIGALRM, SIG_IGN); /* ignore same signal interrupting. */
 
     if (s.segment.type == SYN) {
@@ -20,7 +25,7 @@ void alarm_handler(int sig) {
         }
     }
 	if (s.segment.type == DATA) {
-		// s.segment.seqnum = s.client_timeout_seq_num;
+		 /* s.segment.seqnum = s.client_timeout_seq_num; */
 		printf("[alarm_handler]: re-send DATA segment. seq_num = %d, ack_num = %d, body_len = %d.\n", s.segment.seqnum, s.segment.acknum, s.segment.body_len);
         if (sendto(s.sockfd, &s.segment, sizeof(s.segment), 0, s.addr, s.addrlen) < 0) {
             perror("error in sendto() at gbn_close()");
@@ -69,7 +74,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 
 	int buf_ptr = 0, segment_ptr = 0;
 	int this_window_total_data = 0;
-	int window_buffer[4][3]; /* record each segment's information in window buffer. */
+	gbnhdr window_buffer[4]; /* record each segment's information in window buffer. */
 
 	while(buf_ptr < len) {
 
@@ -85,28 +90,30 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 			new_segment.seqnum = next_seq_num;
 			new_segment.acknum = s.curr_ack_num; /* ack_num is determined by the last received segment's seq_num and body_len. */
 			new_segment.body_len = 0;
-
+			
 			segment_ptr = 0;
-			// printf("**** first char at segment is %c ****\n", ((char *)buf)[buf_ptr]);
+			/* printf("**** first char at segment is %c ****\n", ((char *)buf)[buf_ptr]); */
 			while(segment_ptr < DATALEN && (buf_ptr + segment_ptr) < len) {
 				new_segment.data[segment_ptr] = ((char*)buf)[buf_ptr + segment_ptr];
 				segment_ptr++;
 				new_segment.body_len++;
 			}
 			
-			// printf("**** first char: %c, last char: %c, body len: %d ****.\n", new_segment.data[0], new_segment.data[new_segment.body_len -1], new_segment.body_len);
-			// printf("**** this checksum value = %d.****\n", checksum(new_segment.data, new_segment.body_len));
+			
+			/* printf("**** first char: %c, last char: %c, body len: %d ****.\n", new_segment.data[0], new_segment.data[new_segment.body_len -1], new_segment.body_len); */
+			/* printf("**** this checksum value = %d.****\n", checksum(new_segment.data, new_segment.body_len)); */
 			new_segment.checksum = checksum(new_segment.data, new_segment.body_len);
 			buf_ptr += segment_ptr;
 			this_window_total_data += new_segment.body_len;
 
-			s.segment = new_segment;
-			s.seq_num = new_segment.seqnum;
+			if (window_counter == 0){
+				s.segment = new_segment;
+			}
+			// s.segment = new_segment;
+			// s.seq_num = new_segment.seqnum;
 
 			/* memorize in window buffer. */
-			window_buffer[window_counter][0] = new_segment.seqnum;
-			window_buffer[window_counter][1] = new_segment.acknum;
-			window_buffer[window_counter][2] = new_segment.body_len;
+			window_buffer[window_counter] =  new_segment;
 
 			next_seq_num = new_segment.seqnum + new_segment.body_len; 
 /* 
@@ -116,7 +123,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 					printf("the %d-th char, which is (%d, %c)\n", ii,new_segment.data[ii],new_segment.data[ii]);
 			} */
 			// printf("**** cur seg size = %d ****\n", sizeof(s.segment));
-			sendto(sockfd, &s.segment, sizeof(s.segment), 0, s.addr, s.addrlen);
+			sendto(sockfd, &new_segment, sizeof(new_segment), 0, s.addr, s.addrlen);
 			printf("[gbn_send]: send one DATA segment. seq_num = %d, ack_num = %d, body_len = %d.\n", new_segment.seqnum, new_segment.acknum, new_segment.body_len);
 			
 			alarm(TIMEOUT);
@@ -125,7 +132,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 
 		gbnhdr received_data;
 		int window_buffer_ptr = 0;
-		int next_expected_ack_num = window_buffer[window_buffer_ptr][0] + window_buffer[window_buffer_ptr][2]; /* first segment's seq_num + body_len. */
+		int next_expected_ack_num = window_buffer[window_buffer_ptr].seqnum + window_buffer[window_buffer_ptr].body_len; /* first segment's seq_num + body_len. */
 
 		int curr_window_size = (1 << s.mode);
 
@@ -140,9 +147,15 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 			}
 			if (received_data.type == DATAACK) {
 				printf("[gbn_send]: received DATAACK. seq_num = %d, ack_num = %d, body_len = %d.\n", received_data.seqnum, received_data.acknum, received_data.body_len);
+				/* printf("**** next_expect_ack = %d ****\n", next_expected_ack_num); */
 				if (received_data.acknum == next_expected_ack_num) {
-					alarm(0); /* clear existing timers. */
+					alarm(0); /* clear existing timers. */					
+					alarm(TIMEOUT);
+					/* // printf("**** updated state segment seq: %d, ack: %d, body len: %d. ****\n"); */
 					window_buffer_ptr++;
+					if (window_buffer_ptr < window_size){
+						s.segment = window_buffer[window_buffer_ptr];
+					}
 					if (s.mode < 2) {
 						s.mode = s.mode + 1; /* when successfully sent one segment, switch to faster mode. */
 					}
@@ -151,7 +164,7 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 						/* when receive all data from client, break; otherwise, keep listening. */
 						break;
 					}
-					next_expected_ack_num = next_expected_ack_num + window_buffer[window_buffer_ptr][2]; /* last ack num + next segment's body_len. */
+					next_expected_ack_num = next_expected_ack_num + window_buffer[window_buffer_ptr].body_len; /* last ack num + next segment's body_len. */
 				}
 			}
 		}
@@ -357,6 +370,7 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen){
 	s.data_len = 0;
 	s.mode = 0;
 	s.curr_ack_num = 1;
+	s.timeout_times = 0;
 	// s.client_timeout_seq_num = 1;
 
 	signal(SIGALRM, alarm_handler);

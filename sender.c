@@ -56,7 +56,6 @@ int main(int argc, char *argv[]){
 
 	/*----- Reading from the file and sending it through the socket -----*/
 	while ((numRead = fread(buf, 1, DATALEN * N, inputFile)) > 0){
-		printf("*** read %d chars. last char is %c\n", numRead, buf[numRead - 1]);
 		if (gbn_send(sockfd, buf, numRead, 0) == -1){
 			perror("gbn_send");
 			exit(-1);

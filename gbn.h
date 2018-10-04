@@ -23,7 +23,7 @@ extern int errno;
 /*----- Protocol parameters -----*/
 /* #define LOSS_PROB 1e-2    loss probability                          */
 #define LOSS_PROB 0    /* loss probability                            */
-#define CORR_PROB 0.2    /* corruption probability                      */
+#define CORR_PROB 1    /* corruption probability                      */
 /* #define CORR_PROB 1e-3    corruption probability                     */
 #define DATALEN   1024    /* length of the payload                       */
 #define N         1024    /* Max number of packets a single call to gbn_send can process */
@@ -68,6 +68,7 @@ typedef struct state_t{
 	int data_len;
 	int mode; /* N: is 2^(mode) */
 	int status;
+	int timeout_times;
 
 	gbnhdr segment;
 
