@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 		else if (numRead == 0) {
 			break;
 		}
-		printf("read from buffer. len = %d, content = @%s@. \n", numRead, buf);
+		// printf("read from buffer. len = %d, content = @%s@. \n", numRead, buf);
 		fwrite(buf, 1, numRead, outputFile);
 	}
 

@@ -41,13 +41,6 @@ uint16_t checksum(uint8_t *buf, int nwords)
 	sum = (sum >> 8) + (sum & 0xff);
 	sum += (sum >> 8);
 	return ~sum;
-	// int i = 0;
-	// for (sum = 0; i < nwords; i++){
-	// 	// printf(" #### check sum: (%c, %d), sum = %d ####\n", buf[i], buf[i], sum);
-	// 	sum += buf[i];
-	// }
-	return sum;
-
 }
 
 ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
@@ -93,15 +86,15 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags){
 			new_segment.body_len = 0;
 
 			segment_ptr = 0;
-			printf("**** first char at segment is %c ****\n", ((char *)buf)[buf_ptr]);
+			// printf("**** first char at segment is %c ****\n", ((char *)buf)[buf_ptr]);
 			while(segment_ptr < DATALEN && (buf_ptr + segment_ptr) < len) {
 				new_segment.data[segment_ptr] = ((char*)buf)[buf_ptr + segment_ptr];
 				segment_ptr++;
 				new_segment.body_len++;
 			}
 			
-			printf("**** first char: %c, last char: %c, body len: %d ****.\n", new_segment.data[0], new_segment.data[new_segment.body_len -1], new_segment.body_len);
-			printf("**** this checksum value = %d.****\n", checksum(new_segment.data, new_segment.body_len));
+			// printf("**** first char: %c, last char: %c, body len: %d ****.\n", new_segment.data[0], new_segment.data[new_segment.body_len -1], new_segment.body_len);
+			// printf("**** this checksum value = %d.****\n", checksum(new_segment.data, new_segment.body_len));
 			new_segment.checksum = checksum(new_segment.data, new_segment.body_len);
 			buf_ptr += segment_ptr;
 			this_window_total_data += new_segment.body_len;
@@ -224,8 +217,8 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags){
 
 			/* check whether the data is corrupted */
 			bool passed_checksum = true;
-			printf("**** first char: %c, last char: %c, body len: %d ****.\n", received_data.data[0], received_data.data[received_data.body_len -1], received_data.body_len);
-			printf("**** this checksum value = %d.****\n", checksum(received_data.data, received_data.body_len));
+			// printf("**** first char: %c, last char: %c, body len: %d ****.\n", received_data.data[0], received_data.data[received_data.body_len -1], received_data.body_len);
+			// printf("**** this checksum value = %d.****\n", checksum(received_data.data, received_data.body_len));
 			if(received_data.checksum != checksum(received_data.data, received_data.body_len)){
 				printf("[gbn_recv]: The data is corrupted. Checksum should be %d, but it is actually %d\n", received_data.checksum, checksum(received_data.data, received_data.body_len));
 				passed_checksum = false;
