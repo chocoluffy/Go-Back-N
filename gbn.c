@@ -160,9 +160,6 @@ ssize_t gbn_recv(int sockfd, void *buf, size_t len, int flags) {
      * any type can be corrupted.
      * if it's a DATA packet, check sequence number to see if there is packet lost.
      */
-
-    int cumulative_len = 0;
-
     while (1) {
 
         /* clear all old buf content. */
@@ -393,19 +390,20 @@ int gbn_socket(int domain, int type, int protocol) {
 
 int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen) {
     gbnhdr buf;
-
     while (1) {
         /* [1] call recvfrom. to get SYNC.*/
         ssize_t retval = maybe_recvfrom(sockfd, (char *) &buf, sizeof(buf), 0, client, socklen);
-
+        if (retval < 0) {
+            perror("error in maybe_recvfrom() at gbn_accept().");
+            exit(-1);
+        }
         if (buf.type == SYN) {
-            /* [2] check SYNC integrity.*/
-            /* [3] init SYNACK.*/
+            /* [2] init SYNACK.*/
             gbnhdr synack;
             synack.type = SYNACK;
             synack.seqnum = 1;
             synack.checksum = 0;
-            /* [4] call sendto, reply with SYNACK.*/
+            /* [3] call sendto, reply with SYNACK.*/
             ssize_t retval2 = sendto(sockfd, &synack, sizeof(synack), 0, client, *socklen);
             if (retval2 < 0) {
                 perror("error in sendto() at gbn_accept().");
