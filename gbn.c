@@ -56,15 +56,10 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags) {
      *       about getting more than N * DATALEN.
      */
 
-    printf("[gbn_send]: expect to send content of length = %d. \n", len);
+    printf("[gbn_send]: expect to send content of length = %ld. \n", len);
 
     int init_seq_num = s.next_expected_seq_num;
     int next_seq_num = s.next_expected_seq_num; /* for cumulating the segment seq num in window. */
-
-    gbnhdr received_data;
-    struct sockaddr *from_addr;
-    socklen_t from_len = sizeof(from_addr);
-
     int buf_ptr = 0, segment_ptr = 0;
     int this_window_total_data = 0;
     gbnhdr window_buffer[4]; /* record each segment's information in window buffer. */
@@ -80,13 +75,13 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags) {
 
             gbnhdr new_segment;
             new_segment.type = DATA;
-            new_segment.seqnum = next_seq_num;
-            new_segment.acknum = s.curr_ack_num; /* ack_num is determined by the last received segment's seq_num and body_len. */
+            new_segment.seqnum = (uint32_t) next_seq_num;
+            new_segment.acknum = (uint32_t) s.curr_ack_num; /* ack_num is determined by the last received segment's seq_num and body_len. */
             new_segment.body_len = 0;
 
             segment_ptr = 0;
             while (segment_ptr < DATALEN && (buf_ptr + segment_ptr) < len) {
-                new_segment.data[segment_ptr] = ((char *) buf)[buf_ptr + segment_ptr];
+                new_segment.data[segment_ptr] = ((uint8_t *) buf)[buf_ptr + segment_ptr];
                 segment_ptr++;
                 new_segment.body_len++;
             }
@@ -121,11 +116,11 @@ ssize_t gbn_send(int sockfd, const void *buf, size_t len, int flags) {
 
         while (1) {
             /* GBN(N=1), immediately wait for DATA ACK to proceed. */
-            struct sockaddr *from_addr;
+            struct sockaddr *from_addr = NULL;
             socklen_t from_len = sizeof(from_addr);
-            int retval = maybe_recvfrom(sockfd, &received_data, sizeof(received_data), 0, from_addr, &from_len);
+            ssize_t retval = maybe_recvfrom(sockfd, (char *) &received_data, sizeof(received_data), 0, from_addr, &from_len);
             if (retval < 0) {
-                perror('error in recvfrom() at gbn_send()');
+                perror("error in recvfrom() at gbn_send()");
                 exit(-1);
             }
             if (received_data.type == DATAACK) {
