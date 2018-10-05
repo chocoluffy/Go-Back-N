@@ -281,12 +281,12 @@ int gbn_close(int sockfd) {
         * - timeout: repeat connect.
         * - successfully receive FINACK / FIN, close connection.
         */
-        struct sockaddr *from_addr;
+        struct sockaddr *from_addr = NULL;
         socklen_t from_len = sizeof(from_addr);
         gbnhdr buf;
         while (1) {
             printf("[gbn_close]: start listening...\n");
-            int retval_rec = maybe_recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
+            ssize_t retval_rec = maybe_recvfrom(sockfd, (char *) &buf, sizeof(buf), 0, from_addr, &from_len);
             if (retval_rec < 0) {
                 perror("error in recvfrom() at gbn_close()");
                 exit(-1);
@@ -318,7 +318,7 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen) {
 
     /* set initial state properties. */
     s.sockfd = sockfd;
-    s.seq_num = rand() % 100;
+    s.seq_num = 0;
     s.ack_num = -1;
     s.data_len = 0;
     s.mode = 0;
@@ -333,8 +333,8 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen) {
         /* construct current syn packet. */
         gbnhdr syn_segment;
         syn_segment.type = SYN;
-        syn_segment.seqnum = s.seq_num;
-        syn_segment.acknum = s.ack_num;
+        syn_segment.seqnum = (uint32_t) s.seq_num;
+        syn_segment.acknum = (uint32_t) s.ack_num;
 
         int retval = (int) sendto(sockfd, &syn_segment, sizeof(syn_segment), 0, server, socklen);
         if (retval < 0) {
@@ -356,12 +356,11 @@ int gbn_connect(int sockfd, const struct sockaddr *server, socklen_t socklen) {
         gbnhdr buf;
 
         while (1) {
-
-            struct sockaddr *from_addr;
+            struct sockaddr *from_addr = NULL;
             socklen_t from_len = sizeof(from_addr);
-            int retval = maybe_recvfrom(sockfd, &buf, sizeof(buf), 0, from_addr, &from_len);
-            if (retval < 0) {
-                perror('error in recvfrom() at gbn_connect()');
+            ssize_t retval2 = maybe_recvfrom(sockfd, (char *) &buf, sizeof(buf), 0, from_addr, &from_len);
+            if (retval2 < 0) {
+                perror("error in recvfrom() at gbn_connect()");
                 exit(-1);
             }
             if (buf.type == SYNACK) {
@@ -397,7 +396,7 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen) {
 
     while (1) {
         /* [1] call recvfrom. to get SYNC.*/
-        int retval = maybe_recvfrom(sockfd, &buf, sizeof(buf), 0, client, socklen);
+        ssize_t retval = maybe_recvfrom(sockfd, (char *) &buf, sizeof(buf), 0, client, socklen);
 
         if (buf.type == SYN) {
             /* [2] check SYNC integrity.*/
@@ -407,8 +406,8 @@ int gbn_accept(int sockfd, struct sockaddr *client, socklen_t *socklen) {
             synack.seqnum = 1;
             synack.checksum = 0;
             /* [4] call sendto, reply with SYNACK.*/
-            int retval = sendto(sockfd, &synack, sizeof(synack), 0, client, *socklen);
-            if (retval < 0) {
+            ssize_t retval2 = sendto(sockfd, &synack, sizeof(synack), 0, client, *socklen);
+            if (retval2 < 0) {
                 perror("error in sendto() at gbn_accept().");
                 exit(-1);
             }
@@ -428,7 +427,7 @@ ssize_t maybe_recvfrom(int s, char *buf, size_t len, int flags, struct sockaddr 
 
 
         /*----- Receiving the packet -----*/
-        int retval = recvfrom(s, buf, len, flags, from, fromlen);
+        ssize_t retval = recvfrom(s, buf, len, flags, from, fromlen);
 
         /*----- Packet corrupted -----*/
         if (rand() < CORR_PROB * RAND_MAX) {
